@@ -22,6 +22,8 @@ public class Simulation {
     }
 
     private boolean simulationStarted = false;
+    private int robotX = 0;
+    private int robotY = 0;
 
     public ArrayNode processCommands() {
         ArrayNode results = MAPPER.createArrayNode();
@@ -50,6 +52,15 @@ public class Simulation {
                 case "printMap" -> {
                     if (simulationStarted) {
                         node.set("output", getMapOverview());
+                    } else {
+                        node.put("message", "ERROR: Simulation not started. Cannot perform action");
+                    }
+                }
+                case "moveRobot" -> {
+                    if (simulationStarted) {
+                        robotY++;
+                        if (robotY >= map.getHeight()) robotY = 0;
+                        node.put("message", "The robot has successfully moved to position (" + robotX + ", " + robotY + ").");
                     } else {
                         node.put("message", "ERROR: Simulation not started. Cannot perform action");
                     }
