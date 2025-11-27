@@ -76,4 +76,9 @@ public abstract class Soil extends Entity {
             return "poor";
         }
     }
+
+    public abstract double calculatePossibilityToGetStuckInSoil();
+    public double getPossibilityToGetStuckInSoil() {
+        return calculatePossibilityToGetStuckInSoil();
+    }
 }

@@ -12,6 +12,7 @@ public class Simulation {
 
     private final SimulationInput simulation;
     private final TerraMap map;
+    private final Robot robot;
     private final List<CommandInput> commands;
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
@@ -19,6 +20,8 @@ public class Simulation {
         this.simulation = simulation;
         this.map = new TerraMap(simulation);
         this.commands = commands;
+        int energy = simulation.getEnergyPoints();
+        this.robot = new Robot(0, 0, energy, map);
     }
 
     private boolean simulationStarted = false;
@@ -34,10 +37,12 @@ public class Simulation {
 
             switch (cmd.getCommand()) {
                 case "startSimulation" -> {
+                    robot.startSimulation();
                     simulationStarted = true;
                     node.put("message", "Simulation has started.");
                 }
                 case "endSimulation" -> {
+                    robot.endSimulation();
                     simulationStarted = false;
                     node.put("message", "Simulation has ended.");
                 }
@@ -57,14 +62,18 @@ public class Simulation {
                     }
                 }
                 case "moveRobot" -> {
-                    if (simulationStarted) {
-                        robotY++;
-                        if (robotY >= map.getHeight()) robotY = 0;
-                        node.put("message", "The robot has successfully moved to position (" + robotX + ", " + robotY + ").");
-                    } else {
-                        node.put("message", "ERROR: Simulation not started. Cannot perform action");
-                    }
+                    String result = robot.moveRobot(cmd.getTimestamp());
+                    node.put("message", result);
                 }
+                case "rechargeBattery" -> {
+                    String result = robot.rechargeBattery(cmd.getTimestamp(), simulation.getEnergyPoints());
+                    node.put("message", result);
+                }
+                case "getEnergyStatus" -> {
+                    String result = robot.getEnergyStatus();
+                    node.put("message", result);
+                }
+
             }
 
             node.put("timestamp", cmd.getTimestamp());
@@ -77,11 +86,10 @@ public class Simulation {
 
     private ObjectNode getEnvConditions() {
         ObjectNode output = MAPPER.createObjectNode();
-
+        Cell cell = map.getGrid()[robot.getX()][robot.getY()];
         // Soil
-        for (int x = 0; x < map.getWidth(); x++) {
-            for (int y = 0; y < map.getHeight(); y++) {
-                Soil soil = map.getGrid()[x][y].getSoil();
+               // Soil soil = map.getGrid()[x][y].getSoil();
+        Soil soil = cell.getSoil();
                 if (soil != null) {
                     ObjectNode soilNode = MAPPER.createObjectNode();
                     soilNode.put("type", soil.getType());
@@ -117,65 +125,41 @@ public class Simulation {
                         soilNode.put("permafrostDepth", permafrostDepth);
                     }
                     output.set("soil", soilNode);
-                    break;
                 }
-            }
-            if (output.has("soil")) break;
-        }
 
         // Plants
-        for (int x = 0; x < map.getWidth(); x++) {
-            for (int y = 0; y < map.getHeight(); y++) {
-                Plant plant = map.getGrid()[x][y].getPlant();
+
+                Plant plant = cell.getPlant();
                 if (plant != null) {
                     ObjectNode plantNode = MAPPER.createObjectNode();
                     plantNode.put("type", plant.getType());
                     plantNode.put("name", plant.getName());
                     plantNode.put("mass", plant.getMass());
                     output.set("plants", plantNode);
-                    break;
                 }
-            }
-            if (output.has("plants")) break;
-        }
 
         // Animals
-        for (int x = 0; x < map.getWidth(); x++) {
-            for (int y = 0; y < map.getHeight(); y++) {
-                Animal animal = map.getGrid()[x][y].getAnimal();
+                Animal animal = cell.getAnimal();
                 if (animal != null) {
                     ObjectNode animalNode = MAPPER.createObjectNode();
                     animalNode.put("type", animal.getType());
                     animalNode.put("name", animal.getName());
                     animalNode.put("mass", animal.getMass());
                     output.set("animals", animalNode);
-                    break;
                 }
-            }
-            if (output.has("animals")) break;
-        }
 
         // Water
-        for (int x = 0; x < map.getWidth(); x++) {
-            for (int y = 0; y < map.getHeight(); y++) {
-                Water water = map.getGrid()[x][y].getWater();
+        Water water = cell.getWater();
                 if (water != null) {
                     ObjectNode waterNode = MAPPER.createObjectNode();
                     waterNode.put("type", water.getType());
                     waterNode.put("name", water.getName());
                     waterNode.put("mass", water.getMass());
                     output.set("water", waterNode);
-                    break;
                 }
-            }
-            if (output.has("water")) break;
-        }
 
         // Air
-        for (int x = 0; x < map.getWidth(); x++) {
-            for (int y = 0; y < map.getHeight(); y++) {
-                Air air = map.getGrid()[x][y].getAir();
-                if (air != null) {
+        Air air = cell.getAir();
                     ObjectNode airNode = MAPPER.createObjectNode();
                     airNode.put("type", air.getType());
                     airNode.put("name", air.getName());
@@ -209,11 +193,6 @@ public class Simulation {
                         airNode.put("altitude", altitude);
                     }
                     output.set("air", airNode);
-                    break;
-                }
-            }
-            if (output.has("air")) break;
-        }
 
         return output;
     }

@@ -22,16 +22,16 @@ public class Mountain extends Air {
     }
 
     public double calculateAirQuality() {
-        double oxygenFactor = getOxygenLevel() - (altitude / 1000) * 0.5;
-        double score = oxygenFactor * 2 + getHumidity() * 0.6;
-        double normalized = Math.max(0, Math.min(100, score));
+        double oxygenFactor = getOxygenLevel() - (altitude / 1000.0) * 0.5;
+        double score = oxygenFactor * 2.0 + getHumidity() * 0.6;
+        double normalized = Math.max(0.0, Math.min(100.0, score));
         return Math.round(normalized * 100.0) / 100.0;
     }
 
     public double calculateAirToxicity() {
         double quality = this.airQuality;
-        double toxicityAQ = 100 * (1 - quality / 78);
-        double normalized = Math.max(0, Math.min(100, toxicityAQ));
+        double toxicityAQ = 100.0 * (1.0 - quality / 78.0);
+        double normalized = Math.max(0.0, Math.min(100.0, toxicityAQ));
         return Math.round(normalized * 100.0) / 100.0;
 
     }

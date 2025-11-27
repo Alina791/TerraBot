@@ -27,4 +27,7 @@ public class TundraSoil extends Soil {
         return Math.round(Math.max(0, Math.min(100, score)) * 100.0) / 100.0;
     }
     public double getPermafrostDepth() { return permafrostDepth; }
+    public double calculatePossibilityToGetStuckInSoil() {
+        return (50.0 - permafrostDepth) / 50.0 * 100.0;
+    }
 }

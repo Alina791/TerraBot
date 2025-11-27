@@ -25,4 +25,7 @@ public class SwampSoil extends Soil {
                 - waterLogging * 5;
         return Math.round(Math.max(0, Math.min(100, score)) * 100.0) / 100.0;
     }
+    public double calculatePossibilityToGetStuckInSoil() {
+        return waterLogging * 10;
+    }
 }

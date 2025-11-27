@@ -17,4 +17,7 @@ public class GymnospermsPlants extends Plant{
             default: return 0.0;
         }
     }
+    public double calculatePlantPossibility() {
+        return 60.0 / 100.0;
+    }
 }

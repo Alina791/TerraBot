@@ -17,4 +17,8 @@ public class Algae extends Plant{
             default: return 0.0;
         }
     }
+
+    public double calculatePlantPossibility() {
+        return 20.0 / 100.0;
+    }
 }

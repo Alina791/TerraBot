@@ -17,4 +17,7 @@ public class Mosses extends Plant{
             default: return 0.0;
         }
     }
+    public double calculatePlantPossibility() {
+        return 40.0 / 100.0;
+    }
 }

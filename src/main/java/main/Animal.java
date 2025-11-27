@@ -61,11 +61,9 @@ public abstract class Animal extends Entity{
         return "well-fed".equals(state);
     }
 
+    public abstract double calculateAttackProbability();
     public double getAttackProbability() {
-        return attackProbability;
+        return calculateAttackProbability();
     }
 
-    protected void setAttackProbability(double attackProbability) {
-        this.attackProbability = attackProbability;
-    }
 }

@@ -26,4 +26,7 @@ public class GrasslandSoil extends Soil {
         return Math.round(Math.max(0, Math.min(100, score)) * 100.0) / 100.0;
     }
     public double getRootDensity() { return rootDensity; }
+    public double calculatePossibilityToGetStuckInSoil() {
+        return ((50.0 - rootDensity) + getWaterRetention() * 0.5) / 75.0 * 100.0;
+    }
 }

@@ -22,16 +22,16 @@ public class Polar extends Air {
     }
 
     public double calculateAirQuality() {
-        double score = getOxygenLevel() * 2 + (100 - Math.abs(getTemperature()))
+        double score = getOxygenLevel() * 2.0 + (100.0 - Math.abs(getTemperature()))
                 - iceCrystalConcentration * 0.05;
-        double normalized = Math.max(0, Math.min(100, score));
+        double normalized = Math.max(0, Math.min(100.0, score));
         return Math.round(normalized * 100.0) / 100.0;
     }
 
     public double calculateAirToxicity() {
         double quality = this.airQuality;
-        double toxicityAQ = 100 * (1 - quality / 142);
-        double normalized = Math.max(0, Math.min(100, toxicityAQ));
+        double toxicityAQ = 100.0 * (1.0 - quality / 142.0);
+        double normalized = Math.max(0.0, Math.min(100.0, toxicityAQ));
         return Math.round(normalized * 100.0) / 100.0;
     }
     public double getIceCrystalConcentration() { return iceCrystalConcentration; }

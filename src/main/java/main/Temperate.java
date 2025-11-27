@@ -21,16 +21,16 @@ public class Temperate extends Air {
         this.airToxicity = calculateAirToxicity();
     }
     public double calculateAirQuality() {
-        double score = getOxygenLevel() * 2 + getHumidity() * 0.7
+        double score = getOxygenLevel() * 2.0 + getHumidity() * 0.7
                 - pollenLevel * 0.1;
-        double normalized = Math.max(0, Math.min(100, score));
+        double normalized = Math.max(0.0, Math.min(100.0, score));
         return Math.round(normalized * 100.0) / 100.0;
     }
 
     public double calculateAirToxicity() {
         double quality = this.airQuality;
-        double toxicityAQ = 100 * (1 - quality / 84);
-        double normalized = Math.max(0, Math.min(100, toxicityAQ));
+        double toxicityAQ = 100.0 * (1.0 - quality / 84.0);
+        double normalized = Math.max(0.0, Math.min(100.0, toxicityAQ));
         return Math.round(normalized * 100.0) / 100.0;
     }
     public double getPollenLevel() { return pollenLevel; }

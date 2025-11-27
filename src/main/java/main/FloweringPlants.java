@@ -17,4 +17,7 @@ public class FloweringPlants extends Plant{
             default: return 0.0;
         }
     }
+    public double calculatePlantPossibility() {
+        return 90.0 / 100.0;
+    }
 }

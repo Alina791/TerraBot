@@ -5,6 +5,7 @@ public abstract class Plant extends Entity {
     private String type;
     private String age;
     private double growth;
+    private double plantPossibility;
 
     public Plant(String name, double mass, String type) {
         super(name, mass);
@@ -42,6 +43,10 @@ public abstract class Plant extends Entity {
         } else if ("old".equals(age) && growth > 1.0) {
             age = "dead";
         }
+    }
+    public abstract double calculatePlantPossibility();
+    public double getPlantPossibility() {
+        return calculatePlantPossibility();
     }
 
     public boolean isDead() {

@@ -22,16 +22,16 @@ public class Desert extends Air {
     }
 
     public double calculateAirQuality() {
-        double score = getOxygenLevel() * 2 + dustParticles * 0.2
+        double score = getOxygenLevel() * 2.0 - dustParticles * 0.2
                 - getTemperature() * 0.3;
-        double normalized = Math.max(0, Math.min(100, score));
+        double normalized = Math.max(0.0, Math.min(100.0, score));
         return Math.round(normalized * 100.0) / 100.0;
     }
 
     public double calculateAirToxicity() {
         double quality = this.airQuality;
-        double toxicityAQ = 100 * (1 - quality / 65);
-        double normalized = Math.max(0, Math.min(100, toxicityAQ));
+        double toxicityAQ = 100.0 * (1.0 - quality / 65.0);
+        double normalized = Math.max(0.0, Math.min(100.0, toxicityAQ));
         return Math.round(normalized * 100.0) / 100.0;
     }
     public double getDustParticles() { return dustParticles; }
