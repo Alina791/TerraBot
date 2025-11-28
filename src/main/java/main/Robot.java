@@ -10,6 +10,7 @@ public class Robot {
     private boolean simulationStarted = false;
     private boolean charging = false;
     private int chargingUntilTimestamp = 0;
+    private int lastEnergyUpdateTimestamp = 0;
 
     private TerraMap map;
 
@@ -25,14 +26,16 @@ public class Robot {
     }
 
 
-    public void startSimulation() {
+    public void startSimulation(int timestamp) {
         this.simulationStarted = true;
         this.charging = false;
+        this.lastEnergyUpdateTimestamp = timestamp;
     }
 
     public void endSimulation() {
         this.simulationStarted = false;
     }
+
 
     public String moveRobot(int timestamp) {
         if (!simulationStarted) {
@@ -58,6 +61,7 @@ public class Robot {
         int minScore = Integer.MAX_VALUE;
         int nextX = x;
         int nextY = y;
+
         for (int[] d : directions) {
             int ny = y + d[0];
             int nx = x + d[1];
@@ -79,10 +83,11 @@ public class Robot {
         }
         x = nextX;
         y = nextY;
-        battery = battery - minScore;
+        battery -= minScore;
         return "The robot has successfully moved to position (" + x + ", " + y + ").";
 //        debugMsg.append("The robot has successfully moved to position (").append(x).append(", ").append(y).append(").");
 //        return debugMsg.toString();
+
     }
 
     private int calculateCellScore(int i, int j) {
@@ -131,19 +136,30 @@ public class Robot {
     }
 
 
-
-
-    public String rechargeBattery(int timestamp, int energyPoints) {
+    public String rechargeBattery(int timestamp, int duration) {
         if (!simulationStarted) return "ERROR: Simulation not started. Cannot perform action";
-        if (charging && timestamp < chargingUntilTimestamp)
+        if (isCharging(timestamp)) {
             return "ERROR: Robot still charging. Cannot perform action";
+        }
         charging = true;
-        chargingUntilTimestamp = timestamp + energyPoints;
-        battery += energyPoints;
+        chargingUntilTimestamp = timestamp + duration;
+        battery = battery + duration;
         return "Robot battery is charging.";
     }
     public int getX() { return x; }
     public int getY() { return y; }
-    public String getEnergyStatus() { return "TerraBot has " + battery + " energy points left."; }
-    public boolean isCharging() { return charging; }
+    public String getEnergyStatus(int timestamp) {
+//        if (charging && timestamp >= chargingUntilTimestamp)
+//            charging = false;
+
+        if (isCharging(timestamp)) {
+            return "ERROR: Robot still charging. Cannot perform action";
+        }
+        return "TerraBot has " + battery + " energy points left.";
+    }
+    public boolean isCharging(int timestamp) {
+        if (charging && timestamp >= chargingUntilTimestamp)
+            charging = false;
+        return charging;
+    }
 }

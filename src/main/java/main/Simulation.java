@@ -37,7 +37,7 @@ public class Simulation {
 
             switch (cmd.getCommand()) {
                 case "startSimulation" -> {
-                    robot.startSimulation();
+                    robot.startSimulation(cmd.getTimestamp());
                     simulationStarted = true;
                     node.put("message", "Simulation has started.");
                 }
@@ -47,10 +47,14 @@ public class Simulation {
                     node.put("message", "Simulation has ended.");
                 }
                 case "printEnvConditions" -> {
-                    if (simulationStarted) {
-                        node.set("output", getEnvConditions());
+                    if (robot.isCharging(cmd.getTimestamp())) {
+                        node.put("message", "ERROR: Robot still charging. Cannot perform action");
                     } else {
-                        node.put("message", "ERROR: Simulation not started. Cannot perform action");
+                        if (simulationStarted) {
+                            node.set("output", getEnvConditions());
+                        } else {
+                            node.put("message", "ERROR: Simulation not started. Cannot perform action");
+                        }
                     }
 
                 }
@@ -66,12 +70,17 @@ public class Simulation {
                     node.put("message", result);
                 }
                 case "rechargeBattery" -> {
-                    String result = robot.rechargeBattery(cmd.getTimestamp(), simulation.getEnergyPoints());
+                    String result = robot.rechargeBattery(cmd.getTimestamp(), cmd.getTimeToCharge());
                     node.put("message", result);
                 }
                 case "getEnergyStatus" -> {
-                    String result = robot.getEnergyStatus();
-                    node.put("message", result);
+                    if (simulationStarted) {
+                        String result = robot.getEnergyStatus(cmd.getTimestamp());
+                        node.put("message", result);
+                    } else {
+                        node.put("message", "ERROR: Simulation not started. Cannot perform action");
+                    }
+
                 }
 
             }
