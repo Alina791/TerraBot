@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import fileio.InputLoader;
 import fileio.SimulationInput;
+import simulation.Simulation;
 
 import java.io.File;
 import java.io.IOException;
