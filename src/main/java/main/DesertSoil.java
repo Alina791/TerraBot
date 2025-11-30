@@ -1,31 +1,45 @@
 package main;
 
-import fileio.AirInput;
 import fileio.SoilInput;
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 
 public class DesertSoil extends Soil {
     private double salinity;
 
-    public DesertSoil(String name, double mass, double nitrogen,
-                     double waterReetention, double soilpH,
-                     double oragnicMatter, double salinity) {
-        super(name, mass, "ForestSoil", nitrogen, waterReetention, soilpH, oragnicMatter);
+    private static final double ROUND_FACTOR = 100.0;
+    private static final double NITROGEN_AUX = 0.5;
+    private static final double WATER_RETENTION_AUX = 0.3;
+    private static final double MAX_QUALITY = 100.0;
+    private static final double MIN_QUALITY = 0.0;
+
+    public DesertSoil(final String name, final double mass,
+                      final double nitrogen, final double waterRetention,
+                      final double soilPH, final double organicMatter,
+                      final double salinity) {
+        super(name, mass, "ForestSoil", nitrogen, waterRetention, soilPH, organicMatter);
         this.salinity = salinity;
     }
 
-    public DesertSoil(SoilInput input) {
+    public DesertSoil(final SoilInput input) {
         super(input);
         salinity = input.getSalinity();
         this.soilQuality = calculateSoilQuality();
     }
 
+    /** Calculates the quality of this soil. */
     public double calculateSoilQuality() {
-        double score = getNitrogen() * 0.5 + getWaterRetention() * 0.3
-                - salinity * 2;
-        return Math.round(Math.max(0, Math.min(100, score)) * 100.0) / 100.0;
+        double score = getNitrogen() * NITROGEN_AUX + getWaterRetention()
+                        * WATER_RETENTION_AUX - salinity * 2;
+        return Math.round(Math.max(MIN_QUALITY, Math.min(MAX_QUALITY, score))
+                            * ROUND_FACTOR) / ROUND_FACTOR;
     }
-    public double getSalinity() { return salinity; }
+
+    /** Calculates the possibility for the robot to get stuck in soil. */
     public double calculatePossibilityToGetStuckInSoil() {
-        return (100.0 - getWaterRetention() + salinity) / 100.0 * 100.0;
+        return (MAX_QUALITY - getWaterRetention() + salinity) / ROUND_FACTOR * ROUND_FACTOR;
     }
 }

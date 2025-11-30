@@ -1,6 +1,10 @@
 package main;
 
-import static java.lang.Long.MAX_VALUE;
+import lombok.Getter;
+import lombok.Setter;
+
+@Setter
+@Getter
 
 public class Robot {
     private int x;
@@ -11,33 +15,50 @@ public class Robot {
     private boolean charging = false;
     private int chargingUntilTimestamp = 0;
     private int lastEnergyUpdateTimestamp = 0;
-
+    private final Scanner scanner;
     private TerraMap map;
 
-    public Robot(int startX, int startY, int battery, TerraMap map) {
+    private static final double ROUND_FACTOR = 100.0;
+
+    public Robot(final int startX, final int startY, final int battery, final TerraMap map) {
         this.x = startX;
         this.y = startY;
         this.battery = battery;
         this.map = map;
+        this.scanner = new Scanner(this, map);
     }
 
-    private boolean isInside(int i, int j) {
+    /** Reduces the robot's battery by the specified amount. */
+    public void consumeEnergy(final int amount) {
+        battery = battery - amount;
+    }
+
+    /** Instructs the scanner to scan the specified cell object. */
+    public String scanObject(final Cell cell, final String color,
+                             final String smell, final String sound) {
+        return scanner.scanObject(cell, color, smell, sound);
+    }
+
+    private boolean isInside(final int i, final int j) {
         return i >= 0 && i < map.getWidth() && j >= 0 && j < map.getHeight();
     }
 
-
-    public void startSimulation(int timestamp) {
+    /** Initializes the simulation for the robot. */
+    public void startSimulation(final int timestamp) {
         this.simulationStarted = true;
         this.charging = false;
         this.lastEnergyUpdateTimestamp = timestamp;
     }
 
+    /** Ends the robot's simulation. */
     public void endSimulation() {
         this.simulationStarted = false;
     }
 
-
-    public String moveRobot(int timestamp) {
+    /** Attempts to move the robot to the adjacent cell
+     * with the lowest calculated score.
+     */
+    public String moveRobot(final int timestamp) {
         if (!simulationStarted) {
             return "ERROR: Simulation not started. Cannot perform action";
         }
@@ -46,11 +67,9 @@ public class Robot {
             return "ERROR: Robot still charging. Cannot perform action";
         }
 
-        if (charging && timestamp >= chargingUntilTimestamp) {
+        if (charging) {
             charging = false;
         }
-//        StringBuilder debugMsg = new StringBuilder();
-//        debugMsg.append("Neighboring cell scores (blocking probability):\n");
 
         int[][] directions = {
                 {1, 0},
@@ -71,7 +90,6 @@ public class Robot {
             }
 
             int score = calculateCellScore(nx, ny);
-            //debugMsg.append("Cell (").append(nx).append(", ").append(ny).append("): ").append(score).append("\n");
             if (score < minScore) {
                 minScore = score;
                 nextX = nx;
@@ -83,32 +101,29 @@ public class Robot {
         }
         x = nextX;
         y = nextY;
-        battery -= minScore;
+        battery = battery - minScore;
         return "The robot has successfully moved to position (" + x + ", " + y + ").";
-//        debugMsg.append("The robot has successfully moved to position (").append(x).append(", ").append(y).append(").");
-//        return debugMsg.toString();
 
     }
 
-    private int calculateCellScore(int i, int j) {
+    private int calculateCellScore(final int i, final int j) {
         Cell cell = map.getGrid()[i][j];
-
         double sum = 0.0;
         int count = 0;
 
         if (cell.getSoil() != null) {
             double soilScore = cell.getSoil().getPossibilityToGetStuckInSoil();
             if (!Double.isNaN(soilScore)) {
-                soilScore = Math.round(soilScore * 100.0) / 100.0;
-                sum += soilScore;
+                soilScore = Math.round(soilScore * ROUND_FACTOR) / ROUND_FACTOR;
+                sum = sum + soilScore;
                 count++;
             }
         }
         if (cell.getAir() != null) {
             double airScore = cell.getAir().getAirToxicity();
             if (!Double.isNaN(airScore)) {
-                airScore = Math.round(airScore * 100.0) / 100.0;
-                sum += airScore;
+                airScore = Math.round(airScore * ROUND_FACTOR) / ROUND_FACTOR;
+                sum = sum + airScore;
                 count++;
             }
         }
@@ -116,28 +131,29 @@ public class Robot {
         if (cell.getAnimal() != null) {
             double animalScore = cell.getAnimal().getAttackProbability();
             if (!Double.isNaN(animalScore)) {
-                animalScore = Math.round(animalScore * 100.0) / 100.0;
-                sum += animalScore;
+                animalScore = Math.round(animalScore * ROUND_FACTOR) / ROUND_FACTOR;
+                sum = sum + animalScore;
                 count++;
             }
         }
         if (cell.getPlant() != null) {
             double plantScore = cell.getPlant().getPlantPossibility();
             if (!Double.isNaN(plantScore)) {
-                plantScore = Math.round(plantScore * 100.0) / 100.0;
-                sum += plantScore;
+                plantScore = Math.round(plantScore * ROUND_FACTOR) / ROUND_FACTOR;
+                sum = sum + plantScore;
                 count++;
             }
         }
-
 
         double mean = sum / count;
         return (int) Math.round(mean);
     }
 
-
-    public String rechargeBattery(int timestamp, int duration) {
-        if (!simulationStarted) return "ERROR: Simulation not started. Cannot perform action";
+    /** Starts the robot's battery recharging process. */
+    public String rechargeBattery(final int timestamp, final int duration) {
+        if (!simulationStarted) {
+            return "ERROR: Simulation not started. Cannot perform action";
+        }
         if (isCharging(timestamp)) {
             return "ERROR: Robot still charging. Cannot perform action";
         }
@@ -146,20 +162,22 @@ public class Robot {
         battery = battery + duration;
         return "Robot battery is charging.";
     }
-    public int getX() { return x; }
-    public int getY() { return y; }
-    public String getEnergyStatus(int timestamp) {
-//        if (charging && timestamp >= chargingUntilTimestamp)
-//            charging = false;
 
+    /** Gets the robot's current energy status. */
+    public String getEnergyStatus(final int timestamp) {
         if (isCharging(timestamp)) {
             return "ERROR: Robot still charging. Cannot perform action";
         }
         return "TerraBot has " + battery + " energy points left.";
     }
-    public boolean isCharging(int timestamp) {
-        if (charging && timestamp >= chargingUntilTimestamp)
+
+    /** Checks if the robot is currently in a charging state
+     * and updates the state if charging is complete.
+     */
+    public boolean isCharging(final int timestamp) {
+        if (charging && timestamp >= chargingUntilTimestamp) {
             charging = false;
+        }
         return charging;
     }
 }

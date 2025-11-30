@@ -1,69 +1,58 @@
 package main;
 
 import fileio.AnimalInput;
-import fileio.PlantInput;
+import lombok.Getter;
+import lombok.Setter;
 
-public abstract class Animal extends Entity{
+@Getter
+@Setter
+
+public abstract class Animal extends Entity {
     private String type;
     private String state;
     private boolean scanned;
     private double intakeRate;
     private double attackProbability;
 
-    public Animal(String name, double mass, String type) {
+    private static final double INTAKE_RATE = 0.08;
+
+    public Animal(final String name, final double mass, final String type) {
         super(name, mass);
         this.type = type;
         this.state = "hungry";
         this.scanned = false;
-        this.intakeRate = 0.08;
+        this.intakeRate = INTAKE_RATE;
     }
 
-    public Animal(AnimalInput input) {
+    public Animal(final AnimalInput input) {
         this.type = input.getType();
         setMass(input.getMass());
         setName(input.getName());
     }
 
-    public String getType() {
-        return type;
-    }
-
-    protected void setType(String type) {
-        this.type = type;
-    }
-
-    public String getState() {
-        return state;
-    }
-
-    public void setState(String state) {
-        this.state = state;
-    }
-
-    public boolean isScanned(boolean scanned) {
-        return scanned;
-    }
-
-    public double getIntakeRate() {
-        return intakeRate;
-    }
-
-    protected void setIntakeRate(double intakeRate) {
-        this.intakeRate = intakeRate;
-    }
-
-    public void feed(double food) {
+    /**
+     * Feeds the animal by increasing its mass according to the provided
+     * amount of food.
+     */
+    public void feed(final double food) {
         setMass(getMass() + food);
-        this.state = "well_fed";
+        this.state = "well-fed";
     }
 
-    public boolean Fertilizer() {
+    /** Determines the animal's ability to produce fertilizer. */
+    public boolean fertilizer() {
         return "well-fed".equals(state);
     }
 
+    /** Calculates the probability for the robot to get attacked
+     * by this animal.
+     */
     public abstract double calculateAttackProbability();
+
+    /** Returns the probability for the robot to get attacked
+     * by this animal.
+     */
     public double getAttackProbability() {
         return calculateAttackProbability();
     }
-
 }

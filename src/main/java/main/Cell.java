@@ -1,5 +1,11 @@
 package main;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
+
 public class Cell {
     private Soil soil;
     private Plant plant;
@@ -7,18 +13,20 @@ public class Cell {
     private Water water;
     private Air air;
 
-    public Soil getSoil() { return soil; }
-    public void setSoil(Soil soil) { this.soil = soil; }
+    private int waterEffectCounter = -1;
 
-    public Plant getPlant() { return plant; }
-    public void setPlant(Plant plant) { this.plant = plant; }
+    /** Resets the water effect counter to 0. */
+    public void resetWaterCounter() {
+        waterEffectCounter = 0;
+    }
 
-    public Animal getAnimal() { return animal; }
-    public void setAnimal(Animal animal) { this.animal = animal; }
-
-    public Water getWater() { return water; }
-    public void setWater(Water water) { this.water = water; }
-
-    public Air getAir() { return air; }
-    public void setAir(Air air) { this.air = air; }
+    /**
+     * Increments the water effect counter by 1
+     * if it is non-negative.
+     */
+    public void incrementWaterCounter() {
+        if (waterEffectCounter >= 0) {
+            waterEffectCounter++;
+        }
+    }
 }

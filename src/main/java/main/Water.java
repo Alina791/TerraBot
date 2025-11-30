@@ -1,7 +1,11 @@
 package main;
 
-import fileio.AnimalInput;
 import fileio.WaterInput;
+import lombok.Getter;
+import lombok.Setter;
+
+@Setter
+@Getter
 
 public class Water extends Entity {
     private String type;
@@ -12,12 +16,12 @@ public class Water extends Entity {
     private double pH;
     private boolean isFrozen;
 
-    public Water(String name, double mass, String type) {
+    public Water(final String name, final double mass, final String type) {
         super(name, mass);
         this.type = type;
     }
 
-    public Water(WaterInput input) {
+    public Water(final WaterInput input) {
         this.type = input.getType();
         setMass(input.getMass());
         setName(input.getName());
@@ -28,7 +32,10 @@ public class Water extends Entity {
         pH = input.getPH();
         isFrozen = input.isFrozen();
     }
-    public String getType() {
-        return type;
+
+    /** Checks whether the water was scanned. */
+    public boolean getScanned() {
+        return scanned;
     }
+    private boolean scanned = false;
 }

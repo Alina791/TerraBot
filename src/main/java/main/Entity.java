@@ -1,5 +1,11 @@
 package main;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
+
 public abstract class Entity {
     private String name;
     private double mass;
@@ -8,24 +14,9 @@ public abstract class Entity {
         this.name = null;
         this.mass = 0;
     }
-    public Entity(String name, double mass) {
+
+    public Entity(final String name, final double mass) {
         this.name = name;
-        this.mass = mass;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    protected void setName(String name) {
-        this.name = name;
-    }
-
-    public double getMass() {
-        return mass;
-    }
-
-    protected void setMass(double mass) {
         this.mass = mass;
     }
 }
