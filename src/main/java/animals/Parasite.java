@@ -16,18 +16,6 @@ public class Parasite extends Animal {
         super(input);
     }
 
-    /**
-     * Allows this parasite to harm an animal
-     */
-    public void eat(final Animal prey) {
-        if (prey != null) {
-            double preyMass = prey.getMass();
-            setMass(getMass() + preyMass);
-            prey.setState("dead");
-            setState("well-fed");
-        }
-    }
-
     /** Calculates the probability for the robot to get attacked
      * by this animal.
      */

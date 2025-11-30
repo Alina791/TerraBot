@@ -9,8 +9,6 @@ import entities.Air;
 @Setter
 
 public class Mountain extends Air {
-    private double altitude;
-
     private static final double ALTITUDE_AUX = 0.5;
     private static final double ALTITUDE_DIVISOR = 1000.0;
     private static final double HUMIDITY_AUX = 0.6;
@@ -21,6 +19,7 @@ public class Mountain extends Air {
     private static final double MIN_TOX = 0.0;
     private static final double TOXICITY_AUX = 78.0;
     private static final double ROUND_FACTOR = 100.0;
+    private double altitude;
 
     public Mountain(final String name, final double mass, final double humidity,
                     final double temperature, final double oxygenLevel,
@@ -38,7 +37,9 @@ public class Mountain extends Air {
         this.airToxicity = calculateAirToxicity();
     }
 
-    /** Calculates the air quality score for mountain. */
+    /**
+     * Calculates the air quality score for mountain.
+     */
     public double calculateAirQuality() {
         double oxygenFactor = getOxygenLevel() - (altitude / ALTITUDE_DIVISOR) * ALTITUDE_AUX;
         double score = oxygenFactor * OXYGEN_AUX + getHumidity() * HUMIDITY_AUX;
@@ -46,7 +47,9 @@ public class Mountain extends Air {
         return Math.round(normalized * ROUND_FACTOR) / ROUND_FACTOR;
     }
 
-    /** Calculates the air toxicity based on air quality. */
+    /**
+     * Calculates the air toxicity based on air quality.
+     */
     public double calculateAirToxicity() {
         double quality = this.airQuality;
         double toxicityAQ = ROUND_FACTOR * (1.0 - quality / TOXICITY_AUX);

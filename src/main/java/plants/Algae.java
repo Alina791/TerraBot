@@ -30,7 +30,8 @@ public class Algae extends Plant {
         };
     }
 
-    /** Calculates the possibility for the robot to get attacked
+    /**
+     * Calculates the possibility for the robot to get attacked
      * by this plant.
      */
     public double calculatePlantPossibility() {

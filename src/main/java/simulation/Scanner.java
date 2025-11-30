@@ -57,8 +57,8 @@ public class Scanner {
             type = "water";
         } else if ("pink".equals(color) && "sweet".equals(smell) && "none".equals(sound)) {
             type = "plant";
-        } else if ("brown".equals(color) && "earthy".equals(smell) && "muuu".equals(sound)) {
-            type = "animals";
+        } else if ("brown".equals(color) && "earthy".equals(smell) && !"none".equals(sound)) {
+            type = "animal";
         } else {
             type = "unknown";
         }
@@ -68,27 +68,32 @@ public class Scanner {
             scannedInventory.put(type, scannedObject);
         }
 
-        if ("plant".equals(type)) {
-            Plant plant = cell.getPlant();
-            if (plant != null && !plant.isDead()) {
-                plant.setScanned(true);
-                return "The scanned object is a " + type + ".";
+        switch (type) {
+            case "plant" -> {
+                Plant plant = cell.getPlant();
+                if (plant != null && !plant.isDead()) {
+                    plant.setScanned(true);
+                    return "The scanned object is a " + type + ".";
+                }
             }
-        } else if ("water".equals(type)) {
-            Water water = cell.getWater();
-            if (water != null) {
-                water.setScanned(true);
-                cell.resetWaterCounter();
-                return "The scanned object is " + type + ".";
+            case "water" -> {
+                Water water = cell.getWater();
+                if (water != null) {
+                    water.setScanned(true);
+                    cell.resetWaterCounter();
+                    return "The scanned object is " + type + ".";
+                }
             }
-        } else if ("animals".equals(type)) {
-            Animal animal = cell.getAnimal();
-            if (animal != null) {
-                animal.setScanned(true);
-                return "The scanned object is an " + type + ".";
+            case "animal" -> {
+                Animal animal = cell.getAnimal();
+                if (animal != null) {
+                    animal.setScanned(true);
+                    return "The scanned object is an " + type + ".";
+                }
             }
-        } else {
-            return "ERROR: Object not found. Cannot perform action";
+            default -> {
+                return "ERROR: Object not found. Cannot perform action";
+            }
         }
         return "ERROR: Object not found. Cannot perform action";
     }
@@ -96,7 +101,7 @@ public class Scanner {
     private Object getObjectFromCell(final Cell cell, final String type) {
         return switch (type) {
             case "plant" -> cell.getPlant();
-            case "animals" -> cell.getAnimal();
+            case "animal" -> cell.getAnimal();
             case "water" -> cell.getWater();
             default -> null;
         };

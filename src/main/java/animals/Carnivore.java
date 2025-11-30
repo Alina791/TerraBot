@@ -15,21 +15,6 @@ public class Carnivore extends Animal {
         super(input);
     }
 
-    /**
-     * Allows this carnivore to eat a prey animal
-     */
-    public void eat(final Animal prey) {
-        if (prey != null) {
-
-            double preyMass = prey.getMass();
-            setMass(getMass() + preyMass);
-
-            prey.setState("dead");
-
-            setState("well-fed");
-        }
-    }
-
     /** Calculates the probability for the robot to get attacked
      * by this animal.
      */
