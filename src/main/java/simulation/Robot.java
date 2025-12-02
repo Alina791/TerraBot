@@ -20,8 +20,6 @@ public class Robot {
     private final Scanner scanner;
     private TerraMap map;
 
-    private static final double ROUND_FACTOR = 100.0;
-
     public Robot(final int startX, final int startY, final int battery, final TerraMap map) {
         this.x = startX;
         this.y = startY;
@@ -38,6 +36,12 @@ public class Robot {
     /** Instructs the scanner to scan the specified cell object. */
     public String scanObject(final Cell cell, final String color,
                              final String smell, final String sound, final int timestamp) {
+        if (!simulationStarted) {
+            return "ERROR: Simulation not started. Cannot perform action";
+        }
+        if (isCharging(timestamp)) {
+            return "ERROR: Robot still charging. Cannot perform action";
+        }
         return scanner.scanObject(cell, color, smell, sound, timestamp);
     }
 
@@ -46,10 +50,9 @@ public class Robot {
     }
 
     /** Initializes the simulation for the robot. */
-    public void startSimulation(final int timestamp) {
+    public void startSimulation() {
         this.simulationStarted = true;
         this.charging = false;
-        this.lastEnergyUpdateTimestamp = timestamp;
     }
 
     /** Ends the robot's simulation. */
@@ -105,7 +108,6 @@ public class Robot {
         y = nextY;
         battery = battery - minScore;
         return "The robot has successfully moved to position (" + x + ", " + y + ").";
-
     }
 
     private int calculateCellScore(final int i, final int j) {
@@ -116,15 +118,14 @@ public class Robot {
         if (cell.getSoil() != null) {
             double soilScore = cell.getSoil().getPossibilityToGetStuckInSoil();
             if (!Double.isNaN(soilScore)) {
-                soilScore = Math.round(soilScore * ROUND_FACTOR) / ROUND_FACTOR;
                 sum = sum + soilScore;
                 count++;
             }
         }
+
         if (cell.getAir() != null) {
             double airScore = cell.getAir().getAirToxicity();
             if (!Double.isNaN(airScore)) {
-                airScore = Math.round(airScore * ROUND_FACTOR) / ROUND_FACTOR;
                 sum = sum + airScore;
                 count++;
             }
@@ -133,7 +134,6 @@ public class Robot {
         if (cell.getAnimal() != null) {
             double animalScore = cell.getAnimal().getAttackProbability();
             if (!Double.isNaN(animalScore)) {
-                animalScore = Math.round(animalScore * ROUND_FACTOR) / ROUND_FACTOR;
                 sum = sum + animalScore;
                 count++;
             }
@@ -141,7 +141,6 @@ public class Robot {
         if (cell.getPlant() != null) {
             double plantScore = cell.getPlant().getPlantPossibility();
             if (!Double.isNaN(plantScore)) {
-                plantScore = Math.round(plantScore * ROUND_FACTOR) / ROUND_FACTOR;
                 sum = sum + plantScore;
                 count++;
             }
@@ -152,7 +151,7 @@ public class Robot {
     }
 
     /** Starts the robot's battery recharging process. */
-    public String rechargeBattery(final int timestamp, final int duration) {
+    public String rechargeBattery(final int timestamp, final int timeToCharge) {
         if (!simulationStarted) {
             return "ERROR: Simulation not started. Cannot perform action";
         }
@@ -160,8 +159,8 @@ public class Robot {
             return "ERROR: Robot still charging. Cannot perform action";
         }
         charging = true;
-        chargingUntilTimestamp = timestamp + duration;
-        battery = battery + duration;
+        chargingUntilTimestamp = timestamp + timeToCharge;
+        battery = battery + timeToCharge;
         return "Robot battery is charging.";
     }
 
@@ -169,6 +168,9 @@ public class Robot {
     public String getEnergyStatus(final int timestamp) {
         if (isCharging(timestamp)) {
             return "ERROR: Robot still charging. Cannot perform action";
+        }
+        if (!simulationStarted) {
+            return "ERROR: Simulation not started. Cannot perform action";
         }
         return "TerraBot has " + battery + " energy points left.";
     }

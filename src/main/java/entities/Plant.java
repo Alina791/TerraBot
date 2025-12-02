@@ -53,11 +53,6 @@ public abstract class Plant extends Entity {
         return calculatePlantPossibility();
     }
 
-    /** Checks if the plant is dead. */
-    public boolean isDead() {
-        return "dead".equals(age);
-    }
-
     /** Checks whether the plant was scanned. */
     public boolean getScanned() {
         return scanned;

@@ -1,9 +1,9 @@
 package simulation;
 
 import air.Desert;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import entities.Air;
 import entities.Animal;
 import entities.Plant;
@@ -14,134 +14,162 @@ import fileio.SimulationInput;
 import map.Cell;
 import map.TerraMap;
 import map.Weather;
-
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Simulation {
-
     private final SimulationInput simulation;
     private final TerraMap map;
     private final Robot robot;
-    private final List<CommandInput> commands;
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private final Weather weather = new Weather();
+    private boolean simulationStarted = false;
+    private final Map<String, List<String>> knowledgeBase = new LinkedHashMap<>();
 
+    private static final double ROUND_FACTOR = 100.0;
 
-    public Simulation(final SimulationInput simulation, final List<CommandInput> commands) {
+    public Simulation(final SimulationInput simulation) {
         this.simulation = simulation;
         this.map = new TerraMap(simulation);
-        this.commands = commands;
         int energy = simulation.getEnergyPoints();
         this.robot = new Robot(0, 0, energy, map);
     }
 
-    private boolean simulationStarted = false;
-
     /**
-    * Iterates through the list of commands and executes the appropriate action for each one,
-    * recording the results in a JSON ArrayNode.
-    * Updates environment state (weather, scanned effects) before processing each command.
-    */
-    public ArrayNode processCommands() {
-        ArrayNode results = MAPPER.createArrayNode();
+     * Processes an incoming command during the simulation. It updates the weather state,
+     * applies effects from previous scans, and executes the logic specific to the command.
+     */
+    public ObjectNode processCommand(final CommandInput cmd) {
+        ObjectNode node = MAPPER.createObjectNode();
+        node.put("command", cmd.getCommand());
+        weather.updateAfterTimestamp(cmd.getTimestamp());
+        map.applyScannedEffects();
 
-        for (var cmd : commands) {
-            ObjectNode node = MAPPER.createObjectNode();
-            node.put("command", cmd.getCommand());
-            weather.updateAfterTimestamp(cmd.getTimestamp());
-            map.applyScannedEffects();
-            switch (cmd.getCommand()) {
-                case "startSimulation" -> {
-                    robot.startSimulation(cmd.getTimestamp());
-                    simulationStarted = true;
-                    node.put("message", "Simulation has started.");
-                }
-                case "endSimulation" -> {
-                    robot.endSimulation();
-                    simulationStarted = false;
-                    node.put("message", "Simulation has ended.");
-                }
-                case "printEnvConditions" -> {
-                    if (robot.isCharging(cmd.getTimestamp())) {
-                        node.put("message", "ERROR: Robot still charging. "
-                                 + "Cannot perform action");
-                    } else {
-                        if (simulationStarted) {
-                            node.set("output", getEnvConditions());
-                        } else {
-                            node.put("message", "ERROR: Simulation not started. "
-                                     + "Cannot perform action");
-                        }
-                    }
-
-                }
-                case "printMap" -> {
-                    if (simulationStarted) {
-                        node.set("output", getMapOverview());
-                    } else {
-                        node.put("message", "ERROR: Simulation not started. "
-                                 + "Cannot perform action");
-                    }
-                }
-                case "moveRobot" -> {
-                    String result = robot.moveRobot(cmd.getTimestamp());
-                    node.put("message", result);
-                }
-                case "rechargeBattery" -> {
-                    String result = robot.rechargeBattery(cmd.getTimestamp(),
-                                    cmd.getTimeToCharge());
-                    node.put("message", result);
-                }
-                case "getEnergyStatus" -> {
-                    if (simulationStarted) {
-                        String result = robot.getEnergyStatus(cmd.getTimestamp());
-                        node.put("message", result);
-                    } else {
-                        node.put("message", "ERROR: Simulation not started. "
-                                 + "Cannot perform action");
-                    }
-                }
-                case "changeWeatherConditions" -> {
-                    if (robot.isCharging(cmd.getTimestamp())) {
-                        node.put("message", "ERROR: Robot still charging. "
-                                 + "Cannot perform action");
-                    } else {
-                        if (simulationStarted) {
-                            node.put("message", weather.applyWeatherChange(cmd,
-                                     cmd.getTimestamp(), map));
-                        } else {
-                            node.put("message", "ERROR: Simulation not started. "
-                                     + "Cannot perform action");
-                        }
-                    }
-                }
-                case "scanObject" -> {
-                    if (robot.isCharging(cmd.getTimestamp())) {
-                        node.put("message", "ERROR: Robot still charging. "
-                                 + "Cannot perform action");
-                    } else if (!simulationStarted) {
-                        node.put("message", "ERROR: Simulation not started. "
-                                 + "Cannot perform action");
-                    } else {
-                        String color = cmd.getColor();
-                        String smell = cmd.getSmell();
-                        String sound = cmd.getSound();
-
-                        String result = robot.getScanner().scanCurrentCell(color,
-                                        smell, sound, cmd.getTimestamp());
-                        node.put("message", result);
-                    }
-                }
-                default -> node.put("message", "null");
-
+        switch (cmd.getCommand()) {
+            case "startSimulation" -> {
+                robot.startSimulation();
+                simulationStarted = true;
+                node.put("message", "Simulation has started.");
             }
+            case "endSimulation" -> {
+                robot.endSimulation();
+                simulationStarted = false;
+                node.put("message", "Simulation has ended.");
+            }
+            case "printEnvConditions" -> {
+                if (robot.isCharging(cmd.getTimestamp())) {
+                    node.put("message", "ERROR: Robot still charging. "
+                            + "Cannot perform action");
+                } else {
+                    if (simulationStarted) {
+                        node.set("output", getEnvConditions());
+                    } else {
+                        node.put("message", "ERROR: Simulation not started. "
+                                + "Cannot perform action");
+                    }
+                }
+            }
+            case "printMap" -> {
+                if (simulationStarted) {
+                    node.set("output", getMapOverview());
+                } else {
+                    node.put("message", "ERROR: Simulation not started. "
+                            + "Cannot perform action");
+                }
+            }
+            case "moveRobot" -> {
+                String result = robot.moveRobot(cmd.getTimestamp());
+                node.put("message", result);
+            }
+            case "rechargeBattery" -> {
+                String result = robot.rechargeBattery(cmd.getTimestamp(),
+                        cmd.getTimeToCharge());
+                node.put("message", result);
+            }
+            case "getEnergyStatus" -> {
+                if (simulationStarted) {
+                    String result = robot.getEnergyStatus(cmd.getTimestamp());
+                    node.put("message", result);
+                } else {
+                    node.put("message", "ERROR: Simulation not started. "
+                            + "Cannot perform action");
+                }
+            }
+            case "changeWeatherConditions" -> {
+                if (robot.isCharging(cmd.getTimestamp())) {
+                    node.put("message", "ERROR: Robot still charging. "
+                            + "Cannot perform action");
+                } else {
+                    if (simulationStarted) {
+                        node.put("message", weather.applyWeatherChange(cmd,
+                                cmd.getTimestamp(), map));
+                    } else {
+                        node.put("message", "ERROR: Simulation not started. "
+                                + "Cannot perform action");
+                    }
+                }
+            }
+            case "scanObject" -> {
+                if (robot.isCharging(cmd.getTimestamp())) {
+                    node.put("message", "ERROR: Robot still charging. "
+                            + "Cannot perform action");
+                } else if (!simulationStarted) {
+                    node.put("message", "ERROR: Simulation not started. "
+                            + "Cannot perform action");
+                } else {
+                    String color = cmd.getColor();
+                    String smell = cmd.getSmell();
+                    String sound = cmd.getSound();
 
-            node.put("timestamp", cmd.getTimestamp());
+                    String result = robot.getScanner().scanCurrentCell(color,
+                            smell, sound, cmd.getTimestamp());
+                    node.put("message", result);
+                }
+            }
+            case "learnFact" -> {
+                if (robot.isCharging(cmd.getTimestamp())) {
+                    node.put("message", "ERROR: Robot still charging. "
+                            + "Cannot perform action");
+                } else if (!simulationStarted) {
+                    node.put("message", "ERROR: Simulation not started. "
+                            + "Cannot perform action");
+                } else {
+                    String topic = cmd.getComponents();
+                    String fact = cmd.getSubject();
 
-            results.add(node);
+                    knowledgeBase.putIfAbsent(topic, new ArrayList<>());
+                    knowledgeBase.get(topic).add(fact);
+                    robot.consumeEnergy(2);
+                    node.put("message", "The fact has been successfully saved in the database.");
+                }
+            }
+            case "printKnowledgeBase" -> {
+                if (robot.isCharging(cmd.getTimestamp())) {
+                    node.put("message", "ERROR: Robot still charging. Cannot perform action");
+                } else if (!simulationStarted) {
+                    node.put("message", "ERROR: Simulation not started. Cannot perform action");
+                } else {
+                    ArrayNode output = MAPPER.createArrayNode();
+                    for (var entry : knowledgeBase.entrySet()) {
+                        ObjectNode topicNode = MAPPER.createObjectNode();
+                        topicNode.put("topic", entry.getKey());
+
+                        ArrayNode factsArray = MAPPER.createArrayNode();
+                        for (String f : entry.getValue()) {
+                            factsArray.add(f);
+                        }
+                        topicNode.set("facts", factsArray);
+                        output.add(topicNode);
+                    }
+                    node.set("output", output);
+                }
+            }
+            default -> node.put("message", "null");
         }
-
-        return results;
+        node.put("timestamp", cmd.getTimestamp());
+        return node;
     }
 
     /**
@@ -217,54 +245,54 @@ public class Simulation {
         }
 
         Air air = cell.getAir();
-        ObjectNode airNode = MAPPER.createObjectNode();
-        airNode.put("type", air.getType());
-        airNode.put("name", air.getName());
-        airNode.put("mass", air.getMass());
-        airNode.put("humidity", air.getHumidity());
-        airNode.put("temperature", air.getTemperature());
-        airNode.put("oxygenLevel", air.getOxygenLevel());
-        airNode.put("airQuality", air.getAirQuality());
-        double co2Level = air.getCo2Level();
-        if (!Double.isNaN(co2Level)) {
-            airNode.put("co2Level", co2Level);
-        }
-
-        double iceCrystalConcentration = air.getIceCrystalConcentration();
-        if (!Double.isNaN(iceCrystalConcentration)) {
-            airNode.put("iceCrystalConcentration", iceCrystalConcentration);
-        }
-
-        double pollenLevel = air.getPollenLevel();
-        if (!Double.isNaN(pollenLevel)) {
-            airNode.put("pollenLevel", pollenLevel);
-        }
-
-        if (air.hasFeature("desertStorm")) {
-            boolean storm = ((Desert) air).getDesertStorm();
-            airNode.put("desertStorm", storm);
-        } else {
-            double dustParticles = air.getDustParticles();
-            if (!Double.isNaN(dustParticles)) {
-                airNode.put("dustParticles", dustParticles);
+        if (air != null) {
+            ObjectNode airNode = MAPPER.createObjectNode();
+            airNode.put("type", air.getType());
+            airNode.put("name", air.getName());
+            airNode.put("mass", air.getMass());
+            airNode.put("humidity", air.getHumidity());
+            airNode.put("temperature", air.getTemperature());
+            airNode.put("oxygenLevel", air.getOxygenLevel());
+            airNode.put("airQuality", air.getAirQuality());
+            double co2Level = air.getCo2Level();
+            if (!Double.isNaN(co2Level)) {
+                airNode.put("co2Level",
+                         Math.round(co2Level * ROUND_FACTOR) / ROUND_FACTOR);
             }
-        }
 
-        double altitude = air.getAltitude();
-        if (!Double.isNaN(altitude)) {
-            airNode.put("altitude", altitude);
-        }
-        output.set("air", airNode);
+            double iceCrystalConcentration = air.getIceCrystalConcentration();
+            if (!Double.isNaN(iceCrystalConcentration)) {
+                airNode.put("iceCrystalConcentration", iceCrystalConcentration);
+            }
 
+            double pollenLevel = air.getPollenLevel();
+            if (!Double.isNaN(pollenLevel)) {
+                airNode.put("pollenLevel", pollenLevel);
+            }
+
+            if (air.hasFeature("desertStorm")) {
+                boolean storm = ((Desert) air).getDesertStorm();
+                airNode.put("desertStorm", storm);
+            } else {
+                double dustParticles = air.getDustParticles();
+                if (!Double.isNaN(dustParticles)) {
+                    airNode.put("dustParticles", dustParticles);
+                }
+            }
+            double altitude = air.getAltitude();
+            if (!Double.isNaN(altitude)) {
+                airNode.put("altitude", altitude);
+            }
+            output.set("air", airNode);
+        }
         return output;
     }
 
     /**
-    * Generates a simplified overview of the entire map grid.
-    */
+     * Generates a simplified overview of the entire map grid.
+     */
     private ArrayNode getMapOverview() {
-        ArrayNode mapNode = MAPPER.createArrayNode();
-
+        var mapNode = MAPPER.createArrayNode();
         for (int y = 0; y < map.getHeight(); y++) {
             for (int x = 0; x < map.getWidth(); x++) {
                 Cell cell = map.getGrid()[x][y];
@@ -281,7 +309,6 @@ public class Simulation {
                 if (cell.getWater() != null) {
                     totalObjects++;
                 }
-
                 cellNode.put("totalNrOfObjects", totalObjects);
                 cellNode.put("airQuality", cell.getAir().getAirQualityLabel());
                 cellNode.put("soilQuality", cell.getSoil().getSoilQualityLabel());
@@ -289,5 +316,12 @@ public class Simulation {
             }
         }
         return mapNode;
+    }
+
+    /**
+    * Checks if the simulation is currently running.
+    */
+    public boolean isRunning() {
+        return this.simulationStarted;
     }
 }

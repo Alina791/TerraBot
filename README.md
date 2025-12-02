@@ -100,3 +100,8 @@ tie-breaker in cazul scorurilor egale. Clasa Robot foloseste compozitia
 Scanner. Aceasta separa responsabilitatile de navigare si interactiune cu
 mediul. Robot are metoda recharge, care adauga energie la bateria robotului.
 Daca acesta se incarca, el nu mai poate realiza alte actiuni. 
+
+* **'Clasa SimulationManager'** gestioneaza rularea mai multor simulari
+consecutive. Aceasta creeaza o noua instanta de Simulation, separand clar
+logica de coordonare globala fata de logica simularii propriu-zise si livreaza
+toate mesajele in ordine intr-un array JSON.

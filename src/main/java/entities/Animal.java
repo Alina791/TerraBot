@@ -9,18 +9,13 @@ import lombok.Setter;
 
 public abstract class Animal extends Entity {
     private String type;
-    private String state;
     private double intakeRate;
     private boolean scanned = false;
-
-    private static final double INTAKE_RATE = 0.08;
 
     public Animal(final String name, final double mass, final String type) {
         super(name, mass);
         this.type = type;
-        this.state = "hungry";
         this.scanned = false;
-        this.intakeRate = INTAKE_RATE;
     }
 
     public Animal(final AnimalInput input) {

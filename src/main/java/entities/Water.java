@@ -16,6 +16,9 @@ public class Water extends Entity {
     private double pH;
     private boolean isFrozen;
 
+    private int scanTimestamp = -1;
+    private boolean scanned = false;
+
     public Water(final String name, final double mass, final String type) {
         super(name, mass);
         this.type = type;
@@ -37,5 +40,4 @@ public class Water extends Entity {
     public boolean getScanned() {
         return scanned;
     }
-    private boolean scanned = false;
 }

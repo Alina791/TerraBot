@@ -4,8 +4,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import fileio.InputLoader;
-import fileio.SimulationInput;
-import simulation.Simulation;
+import simulation.SimulationManager;
 
 import java.io.File;
 import java.io.IOException;
@@ -25,13 +24,12 @@ public final class Main {
                               final String outputPath) throws IOException {
 
         InputLoader inputLoader = new InputLoader(inputPath);
-        ArrayNode output = MAPPER.createArrayNode();
 
-        for (SimulationInput sim : inputLoader.getSimulations()) {
-            Simulation processor = new Simulation(sim, inputLoader.getCommands());
-            ArrayNode simResult = processor.processCommands();
-            output.addAll(simResult);
-        }
+        SimulationManager manager = new SimulationManager();
+        ArrayNode output = manager.multipleSimulations(
+                inputLoader.getSimulations(),
+                inputLoader.getCommands()
+        );
 
         File outputFile = new File(outputPath);
         outputFile.getParentFile().mkdirs();

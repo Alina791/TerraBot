@@ -48,9 +48,9 @@ public class TerraMap {
     private static final double HUMIDITY_ADDED = 0.1;
 
     /** Initializes the TerraMap grid based on the dimensions provided in the simulation input
-    * and populates the cells with Soil, Plants, Animals, Water, and Air objects
-    * according to the section parameters.
-    */
+     * and populates the cells with Soil, Plants, Animals, Water, and Air objects
+     * according to the section parameters.
+     */
     public TerraMap(final SimulationInput sim) {
         String[] tokens = sim.getTerritoryDim().split("x");
 
@@ -115,7 +115,6 @@ public class TerraMap {
             }
         }
 
-
         if (params.getAnimals() != null) {
             for (AnimalInput aIn : params.getAnimals()) {
                 Animal animal = switch (aIn.getType()) {
@@ -126,7 +125,6 @@ public class TerraMap {
                     case "Parasites" -> new Parasite(aIn);
                     default -> null;
                 };
-
                 for (PairInput pos : aIn.getSections()) {
                     int x = pos.getX(), y = pos.getY();
                     if (grid[x][y].getAnimal() == null) {
@@ -135,7 +133,6 @@ public class TerraMap {
                 }
             }
         }
-
 
         if (params.getWater() != null) {
             for (WaterInput wIn : params.getWater()) {
@@ -151,7 +148,6 @@ public class TerraMap {
                 }
             }
         }
-
 
         for (AirInput aIn : params.getAir()) {
             for (PairInput pos : aIn.getSections()) {
@@ -184,7 +180,7 @@ public class TerraMap {
                 Plant plant = cell.getPlant();
                 Air air = cell.getAir();
 
-                if (plant != null && plant.getScanned() && !plant.isDead() && air != null) {
+                if (plant != null && plant.getScanned() && air != null) {
                     plant.grow(PLANT_SOIL_GROWTH);
                     double oxygenFromPlant = plant.getOxygen();
                     air.addOxygen(oxygenFromPlant);
@@ -202,7 +198,7 @@ public class TerraMap {
                             air.addHumidity(HUMIDITY_ADDED);
                         }
                     }
-                    if (plant != null && !plant.isDead()) {
+                    if (plant != null) {
                         plant.grow(PLANT_SOIL_GROWTH);
                     }
                 }

@@ -15,10 +15,8 @@ import java.util.Map;
 @Setter
 
 public class Scanner {
-
     private final Robot robot;
     private final TerraMap map;
-
     private final Map<String, Object> scannedInventory = new HashMap<>();
 
     private static final double SCAN_ENERGY = 7;
@@ -50,14 +48,12 @@ public class Scanner {
             return "ERROR: Object not found. Cannot perform action";
         }
 
-        robot.consumeEnergy(SCAN_ENERGY_INT);
-
         String type;
         if ("none".equals(color) && "none".equals(smell) && "none".equals(sound)) {
             type = "water";
-        } else if ("pink".equals(color) && "sweet".equals(smell) && "none".equals(sound)) {
+        } else if (!"none".equals(color) && !"none".equals(smell) && "none".equals(sound)) {
             type = "plant";
-        } else if ("brown".equals(color) && "earthy".equals(smell) && !"none".equals(sound)) {
+        } else if (!"none".equals(color) && !"none".equals(smell) && !"none".equals(sound)) {
             type = "animal";
         } else {
             type = "unknown";
@@ -71,8 +67,9 @@ public class Scanner {
         switch (type) {
             case "plant" -> {
                 Plant plant = cell.getPlant();
-                if (plant != null && !plant.isDead()) {
+                if (plant != null) {
                     plant.setScanned(true);
+                    robot.consumeEnergy(SCAN_ENERGY_INT);
                     return "The scanned object is a " + type + ".";
                 }
             }
@@ -81,6 +78,7 @@ public class Scanner {
                 if (water != null) {
                     water.setScanned(true);
                     cell.resetWaterCounter();
+                    robot.consumeEnergy(SCAN_ENERGY_INT);
                     return "The scanned object is " + type + ".";
                 }
             }
@@ -88,6 +86,7 @@ public class Scanner {
                 Animal animal = cell.getAnimal();
                 if (animal != null) {
                     animal.setScanned(true);
+                    robot.consumeEnergy(SCAN_ENERGY_INT);
                     return "The scanned object is an " + type + ".";
                 }
             }

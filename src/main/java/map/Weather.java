@@ -16,7 +16,6 @@ public class Weather {
     private boolean active = false;
     private String weatherType;
     private int appliedAtTimestamp = -1;
-
     private final Map<Cell, Double> previousQualities = new HashMap<>();
 
     private static final double DESERT_AUX = 30;
