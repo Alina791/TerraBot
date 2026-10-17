@@ -1,5 +1,5 @@
-#TerraBot Game
-# Ecological Simulation Engine
+
+# TerraBot Game
 
 An object-oriented simulation engine that models interactions between an autonomous robot and various ecological entities across a dynamic environment. The system utilizes object-oriented principles such as abstraction, inheritance, and polymorphism to represent environmental factors, flora, fauna, and map dynamics.
 
