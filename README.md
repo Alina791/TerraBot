@@ -1,107 +1,44 @@
-# Tema OOP TerraBot
-# RÂNCĂ Alina Maria - 323CA
+#TerraBot Game
+# Ecological Simulation Engine
 
-## Structura pechetelor
-In implementarea programului am folosit abstractizarea si mostenirea pentru a
-construi ierarhiile ecologice. Am creat pachete pentru a organiza clasele:
+An object-oriented simulation engine that models interactions between an autonomous robot and various ecological entities across a dynamic environment. The system utilizes object-oriented principles such as abstraction, inheritance, and polymorphism to represent environmental factors, flora, fauna, and map dynamics.
 
-### 1. pachetul air
-Contine toate subclasele clasei Air (tipuri de aer). Fiecare clasa primeste
-AirInput pentru a stoca datele citite si implementeaza metode specifice pentru
-calcularea calitatii si toxicitatii aerului. Toate clasele din pachet au metoda
-addOxygen, care actualizeaza nivelul de oxigen, dar si caracteristice conexe
-ale aerului in momentul interactiunii cu mediul (la scanarea unei plante).
+---
 
-### 2. pachetul soil
-Contine toate subclasele clasei Soil (tipuri de sol). Fiecare clasa are un camp
-specific tipului de sol, care este folosit in implementarea metodei pentru
-calcularea calitatii solului.
+## Core Architecture & Domain Model
 
-### 3. pachetul animals
-Contine toate subclasele clasei Animal (tipuri de animale, in functie de hrana
-consumata). Fiecare primeste AnimalInput.
+The system establishes a polymorphic interface through a base `Entity` class and typed inputs, dividing environmental factors into specialized sub-domains:
 
-### 4. pachetul plants
-Contine toate subclasele clasei Plant (tipuri de plante). Fiecare clasa are o
-metoda ce returneaza cantitatea de oxigen produsa de planta in functie de
-varsta sa. Fiecare primeste PlantInput.
+*   **Air Domain**: Represents atmospheric conditions. Classes compute air quality and toxicity based on input data. They implement methods such as `addOxygen`, `addHumidity`, and weather condition triggers that adjust oxygen, humidity, and toxicity levels dynamically during interactions (e.g., plant scanning).
+*   **Soil Domain**: Represents ground conditions. Computes soil quality metrics based on specific soil properties and updates characteristics upon environmental shifts (e.g., moisture absorption).
+*   **Flora (Plants)**: Tracks plant growth and oxygen generation. Plants calculate oxygen output based on age, update growth stages dynamically using environmental oxygen levels, and compute attack/obstacle probabilities against the robot.
+*   **Fauna (Animals)**: Categorizes animals based on diet types to calculate attack probabilities and path obstruction risks for the navigating robot.
+*   **Water**: Tracks scanned states and directly influences surrounding soil moisture and air humidity.
 
-In toate clasele din pachetele air, soil, animals si plants este calculata
-probabilitatea ca entitatea respectiva sa afecteze drumul ales de robot. In
-cazul claselor din air, probabilitatea este data de toxicitatea aerului.
+---
 
-### 5. pachetul entities
-Contine toate clasele de baza (superclasele, inclusiv Entity), stabilind
-interfata polimorfica prin metode abstracte precum calculateAirQuality() sau
-calculateAttackProbability(). Toate clasele primesc inputul specific tipului.
+## Environment & Map Mechanics (`TerraMap`)
 
-* **'Clasa Air'** implementeaza metode, precum addOxygen, addHumidity si pentru
-schimbarea conditiilor meteo, care sunt folosite de subclasele sale la
-actualizarea in mod corespunzator a oxigenului, a umiditatii si a mediului.
-Ulterior, este necesara recalcularea calitatii aerului. Clasa are o metoda care
-returneaza un label pentru calitatea aerului in functie de valoarea sa si o
-metoda care verifica daca vremea are o caracteristica specifica (apelata in
-Simulation). 
+*   **Grid System (`TerraMap` & `Cell`)**: Represents the environment as a grid of coordinates. Each cell holds instances of active entities (Air, Soil, Water, Plants, Animals).
+*   **Dynamic Weather System (`Weather`)**: Applies temporal environmental modifications. External weather changes adjust air quality for a fixed duration of two seconds before restoring initial baseline values.
+*   **Environmental Feedback Loops**: Scanning entities triggers immediate environmental updates. Plants release oxygen to the air, while water sources modify surrounding air humidity and soil moisture.
 
-* **'Clasa Plant'** are metode abstracte (implementate de subclase), pentru
-posibilitatea plantei de a ataca robotul si pentru cantitatea de oxigen
-produsa de fiecare specie de planta. Metoda getScanned spune daca planta a fost
-sau nu scanata, iar metoda grow actualizeaza label ul pentru varsta plantei si
-cresterea sa in functie de oxigenul primit de la mediu.
+---
 
-* **'Clasa Soil'** este asemanatoare cu Air, deoarece are metode similare
-pentru schimabarea mediului, avand, de asemenea, o metoda pentru identificarea
-unui label pentru calitatea solului.
+## Simulation & Navigation Engine
 
-* **'Clasa Animal'** implementeaza metoda abstracta pentru calcularea
-probabilitatii de atac asupra robotului.
+The simulation lifecycle is managed through three primary components:
 
-* **'Clasa Water'** are o metoda pentru a identifica daca entitatea a fost
-scanata.
+### 1. `Robot` (Autonomous Navigation)
+*   **Pathfinding Logic (`moveRobot`)**: Evaluates neighboring cells to determine the lowest movement cost. Cost is computed as the arithmetic mean of risk factors within a target cell (e.g., air toxicity, soil movement risk, fauna attack probability).
+*   **Tie-Breaking**: Analyzes cells in a predefined directional order to resolve equal-cost scenarios.
+*   **Composition**: Delegates environment interactions to an internal `Scanner` instance, maintaining a clear separation of concerns between navigation and environment scanning.
+*   **Power Management**: Includes a `recharge` mechanism. While actively charging, the robot is locked out of performing other actions.
 
-### 6. pachetul map
-* **'Clasa Cell'** reprezinta o celula din harta si retine schimbarea apei.
+### 2. `Scanner`
+*   Identifies target objects within the robot's current cell based on command parameters.
+*   Executes scanning procedures and propagates environmental modifications back to the map.
 
-* **'Clasa TerraMap'** creeaza un grid pentru a stoca parametrii corespunzatori
-din input la coordonatele din harta indicate. Se creeaza un obiect nou pentru
-fiecare entitate din input. In plus, exista metoda care aplica schimbarile
-asupra mediului in urma scanarii unui obiect. Aceasta poate aduce schimbari
-asupra aerului, in functie de plante (oxigen) sau de apa (umiditate) sau asupra
-solului, in functie de umiditatea apei.
-
-* **'Clasa Weather'** are o metoda ce are ca scop schimbarea calitatii aerului,
-in functie de diferiti factori externi. Calitatea anterioara a aerului este
-pastrata. Schimbarile aerului sunt applicate doar doua secunde dupa primirea
-comenzii, iar apoi sunt recuperate valorile initiale.
-
-### 7. pachetul simulation
-Contine clasele Robot, Simulation si Scanner, responsabile de desfasurarea
-unei simulari.
-
-* **'Clasa Simulation'** proceseaza fiecare comanda intalnita in input si
-produce schimbarile specifice. Exista erori specifice in cazul in care
-simularea nu a inceput inca sau robotul este la incarcat. Simulation pune
-mesajele fiecarei comenzi in nodurile array-ului. Aceasta are o metoda pentru
-afisarea caracteristicior celulei curente (analizeaza ce entitati exista in
-celula respectiva), dar si o metoda pentru afisarea hartii in mod simplificat. 
-
-* **'Clasa Scanner'** se ocupa de scanarea unui anumit obiect, in functie de
-parametrii primiti din input. Cand Scanner identifica ce tip de obiect trebuie
-sa scaneze, scaneaza entitatea respectiva din celula curenta. Tipul de obiect
-scanat aduce diferite schimbari asupra mediului.
-
-* **'Clasa Robot'** este responsabila pentru traseul robotului pe harta. Metoda
-moveRobot a clasei Robot implementeaza o logica de cautare a celui mai mic cost
-de miscare. Acest cost este calculat ca o medie aritmetica a riscurilor din
-celula tinta (toxicitate aer, risc de blocare sol, ..). Robotul analizeaza 
-celulele intr-o ordine specifica, utilizand aceasta ordine ca regula de
-tie-breaker in cazul scorurilor egale. Clasa Robot foloseste compozitia
-(has-a relation) pentru a delega functia de scanare obiectului intern de tip
-Scanner. Aceasta separa responsabilitatile de navigare si interactiune cu
-mediul. Robot are metoda recharge, care adauga energie la bateria robotului.
-Daca acesta se incarca, el nu mai poate realiza alte actiuni. 
-
-* **'Clasa SimulationManager'** gestioneaza rularea mai multor simulari
-consecutive. Aceasta creeaza o noua instanta de Simulation, separand clar
-logica de coordonare globala fata de logica simularii propriu-zise si livreaza
-toate mesajele in ordine intr-un array JSON.
+### 3. `Simulation` & `SimulationManager`
+*   **`Simulation`**: Processes sequential input commands, state transitions, cell status inspections, and simplified map displays. Handles validation errors (e.g., commands issued before initialization or while the robot is charging) and collects execution logs.
+*   **`SimulationManager`**: Coordinates multiple consecutive simulation runs. Isolates global orchestrations from individual simulation instances and compiles all log outputs into a structured JSON array.
